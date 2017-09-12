@@ -1,0 +1,73 @@
+---
+title: "R with SQLite"
+output: html_notebook
+---
+
+Maintaining a local SQLite cache database of data for processing in R and Python.
+
+The local databases are in the "F:\sqlite-databases\" directory as files with extension *.sqlite
+
+Database creation: change directory to "F:\sqlite-databases\", 
+
+>sqlite3 nbase.sqlite
+
+
+
+```{r}
+library(RSQLite)  #where the SQLite wrapper is
+library(DBI)
+
+# set up the name of the database
+dbname <- "F:/sqlite_databases/nbase.sqlite"
+
+# Now we connect
+db <- dbConnect(RSQLite::SQLite(), dbname)
+
+# Data
+# data(fdf)
+# dbWriteTable(db, "foster", fdf)
+# dbListTables(db)
+
+# query
+# dbGetQuery(db, "SELECT * FROM foster;")
+
+# turn the light off before leaving
+#dbDisconnect(db)
+```
+```{sql connection=db}
+SELECT * FROM foster;
+```
+
+Or you can build your query, then fetch the data
+
+```{r}
+
+myQuery <- dbSendQuery(db, "SELECT Measurement.Timestamp.Label, Humidity FROM foster")
+
+my_data <- dbFetch(myQuery, n = -1) # -1 means 'all'
+
+# clean up after yourself 
+# bClearResult(myQuery)
+
+# Don't forget to turn the lights off when you are leaving!
+dbDisconnect(db)
+```
+
+Also, see in pandas/python
+
+```{python}
+import pandas as pd
+import sqlite3
+ 
+conn = sqlite3.connect('F:/sqlite_databases/nbase.sqlite')
+query = "SELECT * FROM foster"
+ 
+df = pd.read_sql_query(query,conn)
+ 
+print(df.head())
+```
+
+
+And 'out of memory' workflow: https://plot.ly/python/big-data-analytics-with-pandas-and-sqlite/
+
+The end.
