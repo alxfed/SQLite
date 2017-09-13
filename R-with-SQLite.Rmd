@@ -15,16 +15,53 @@ Database creation: change directory to "F:\sqlite-databases\",
 
 ```{r}
 library(RSQLite)  #where the SQLite wrapper is
-library(DBI)
+library(DBI)      #the general DBI
 
 # set up the name of the database
 db1name <- "F:/sqlite_databases/dabase.sqlite"
-db2name <- "F:/sqlite_databases/thabase.sqlite"
+#db2name <- "F:/sqlite_databases/thabase.sqlite"
 
-# Now we connect
-db1 <- dbConnect(SQLite(), db1name)
-db2 <- dbConnect(SQLite(), db2name)
+# Now we open two connections
+db1conn <- dbConnect(RSQLite::SQLite(), db1name)
+#db2conn <- dbConnect(RSQLite::SQLite(), db2name)
 
+```
+
+From DBI documentation:
+
+"...callers are strongly advised to use dbExecute() for data manipulation statements," - not for SELECT statements where dbGetQuery should be used. So, for table creation and deletion etc. etc. the dbExecute should be used.
+
+```{r}
+# Let's create tables in the open databases
+q1 <- "CREATE TABLE datable (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user CHAR(20)
+          );"
+res <- dbExecute(db1conn, q1)  # res has a number of affected rows in it
+```
+
+One layer lower for the same is dbSendStatement() but if you use that one you need to  dbClearResult() after it yourself; dbSendQuery() (which requires dbClearResult too) is for lower level "SELECT" queries.
+
+From DBI:"The dbSendStatement() method only submits and synchronously executes the SQL data manipulation statement (e.g., UPDATE, DELETE, INSERT INTO, DROP TABLE, ...) to the database engine. "
+
+
+Or you can build your own query, then fetch the data and clean yourself, but this is just what dbGetQuery does (without going back and forth to the interpreter three times).
+
+```{r}
+# Build and send query
+myQuery <- dbSendQuery(db, "SELECT Measurement.Timestamp.Label, Humidity FROM foster")
+
+# Fetch the result
+my_data <- dbFetch(myQuery, n = -1) # -1 means 'all'
+
+# clean up after yourself 
+bClearResult(myQuery)
+
+# Don't forget to turn the lights off when you are leaving!
+dbDisconnect(db1conn)
+```
+
+```{r}
 # As in a console mode initiating connection creates a database file
 
 
@@ -40,24 +77,6 @@ db2 <- dbConnect(SQLite(), db2name)
 #dbDisconnect(db)
 ```
 
-From DBI documentation:
-
-"callers are strongly advised to use dbExecute() for data manipulation statements." - not for SELECT statements where dbGetQuery should be used.
-
-Or you can build your query, then fetch the data
-
-```{r}
-
-myQuery <- dbSendQuery(db, "SELECT Measurement.Timestamp.Label, Humidity FROM foster")
-
-my_data <- dbFetch(myQuery, n = -1) # -1 means 'all'
-
-# clean up after yourself 
-# bClearResult(myQuery)
-
-# Don't forget to turn the lights off when you are leaving!
-dbDisconnect(db)
-```
 
 Also, see in pandas/python
 
