@@ -11,17 +11,20 @@ Database creation: change directory to "F:\sqlite-databases\",
 
 >sqlite3 nbase.sqlite
 
-
+...but I want to try creating a database programmatically in this episode.
 
 ```{r}
 library(RSQLite)  #where the SQLite wrapper is
 library(DBI)
 
 # set up the name of the database
-dbname <- "F:/sqlite_databases/nbase.sqlite"
+dbname <- "F:/sqlite_databases/dabase.sqlite"
 
 # Now we connect
-db <- dbConnect(RSQLite::SQLite(), dbname)
+db <- dbConnect(SQLite(), dbname)
+
+# As in a console mode initiating connection creates a database file
+
 
 # Data
 # data(fdf)
@@ -34,9 +37,8 @@ db <- dbConnect(RSQLite::SQLite(), dbname)
 # turn the light off before leaving
 #dbDisconnect(db)
 ```
-```{sql connection=db}
-SELECT * FROM foster;
-```
+
+
 
 Or you can build your query, then fetch the data
 
