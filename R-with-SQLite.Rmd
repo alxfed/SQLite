@@ -18,10 +18,12 @@ library(RSQLite)  #where the SQLite wrapper is
 library(DBI)
 
 # set up the name of the database
-dbname <- "F:/sqlite_databases/dabase.sqlite"
+db1name <- "F:/sqlite_databases/dabase.sqlite"
+db2name <- "F:/sqlite_databases/thabase.sqlite"
 
 # Now we connect
-db <- dbConnect(SQLite(), dbname)
+db1 <- dbConnect(SQLite(), db1name)
+db2 <- dbConnect(SQLite(), db2name)
 
 # As in a console mode initiating connection creates a database file
 
@@ -38,7 +40,9 @@ db <- dbConnect(SQLite(), dbname)
 #dbDisconnect(db)
 ```
 
+From DBI documentation:
 
+"callers are strongly advised to use dbExecute() for data manipulation statements." - not for SELECT statements where dbGetQuery should be used.
 
 Or you can build your query, then fetch the data
 
