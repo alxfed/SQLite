@@ -181,9 +181,10 @@ $(document).ready(function () {
 <p>…but I want to try creating a database programmatically in this episode.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShSU1FMaXRlKSAgI3doZXJlIHRoZSBTUUxpdGUgd3JhcHBlciBpc1xubGlicmFyeShEQkkpICAgICAgI3RoZSBnZW5lcmFsIERCSVxuIyBzZXQgdXAgdGhlIG5hbWUgb2YgdGhlIGRhdGFiYXNlXG5kYjFuYW1lIDwtIFwiRjovc3FsaXRlX2RhdGFiYXNlcy9kYWJhc2Uuc3FsaXRlXCJcbiNkYjJuYW1lIDwtIFwiRjovc3FsaXRlX2RhdGFiYXNlcy90aGFiYXNlLnNxbGl0ZVwiXG4jIE5vdyB3ZSBvcGVuIHR3byBjb25uZWN0aW9uc1xuZGIxY29ubiA8LSBkYkNvbm5lY3QoUlNRTGl0ZTo6U1FMaXRlKCksIGRiMW5hbWUpXG4jZGIyY29ubiA8LSBkYkNvbm5lY3QoUlNRTGl0ZTo6U1FMaXRlKCksIGRiMm5hbWUpXG5gYGAifQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShSU1FMaXRlKSAgI3doZXJlIHRoZSBTUUxpdGUgd3JhcHBlciBpc1xubGlicmFyeShEQkkpICAgICAgI3RoZSBnZW5lcmFsIERCSVxuICAgICAgICAgICAgICAjIE9wZW5pbmcgb3IgQ3JlYXRpbmcgYSBkYXRhYmFzZSBmaWxlXG4jIHNldCB1cCB0aGUgbmFtZSBvZiB0aGUgZGF0YWJhc2VcbmRiMW5hbWUgPC0gXCJGOi9zcWxpdGVfZGF0YWJhc2VzL2RhYmFzZS5zcWxpdGVcIlxuI2RiMm5hbWUgPC0gXCJGOi9zcWxpdGVfZGF0YWJhc2VzL3RoYWJhc2Uuc3FsaXRlXCJcbiMgTm93IHdlIG9wZW4gdHdvIGNvbm5lY3Rpb25zXG5kYjFjb25uIDwtIGRiQ29ubmVjdChSU1FMaXRlOjpTUUxpdGUoKSwgZGIxbmFtZSlcbiNkYjJjb25uIDwtIGRiQ29ubmVjdChSU1FMaXRlOjpTUUxpdGUoKSwgZGIybmFtZSlcbmBgYCJ9 -->
 <pre class="r"><code>library(RSQLite)  #where the SQLite wrapper is
 library(DBI)      #the general DBI
+              # Opening or Creating a database file
 # set up the name of the database
 db1name &lt;- &quot;F:/sqlite_databases/dabase.sqlite&quot;
 #db2name &lt;- &quot;F:/sqlite_databases/thabase.sqlite&quot;
@@ -193,27 +194,78 @@ db1conn &lt;- dbConnect(RSQLite::SQLite(), db1name)
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
+<p>Let’s list the existing tables, then - create a new one if necessary</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuICAgICAgICAgICAgICAjTGlzdCB0YWJsZXMgKGFuZCB2aWV3cylcbmNoYXJ2ZWN0b3IgPC0gZGJMaXN0VGFibGVzKGRiMWNvbm4pXG5jaGFydmVjdG9yXG5gYGAifQ== -->
+<pre class="r"><code>              #List tables (and views)
+charvector &lt;- dbListTables(db1conn)
+charvector</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIFwiZGF0YWJsZVwiICAgICAgICAgXCJzcWxpdGVfc2VxdWVuY2VcIlxuIn0= -->
+<pre><code>[1] &quot;datable&quot;         &quot;sqlite_sequence&quot;</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Let’s not bother with finding out whether ‘our name’ is in this char vector. We have our Data that needs to be stored. Luckily enough, besides the ordinary ‘database way’ of first creating a table (with the formats that need to figured out before you start), then adding rows to it one after another, there is an “R way” of throwing a whole dataframe into the opened database and let the function figure out the formats and create a table accordingly.</p>
+<ol style="list-style-type: decimal">
+<li>dbWriteTable()</li>
+</ol>
+<p>Page 41 of DBI document. Copies R data frames to database tables.</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuICAgICAgICAgICAgICAjIENvcHkgUiBkYXRhIGZyYW1lIHRvIGRhdGFiYXNlIHRhYmxlLFxuICAgICAgICAgICAgICAjIGNyZWF0ZSBvbmUgaWYgaXQgZG9lc24ndCBleGlzdCxcbiAgICAgICAgICAgICAgIyBhcHBlbmQgb3IgcmV3cml0ZSBpZiBpdCBkb2VzLlxucmVzIDwtIGRiV3JpdGVUYWJsZShkYjFjb25uLCBcImRhdGFibGVcIiwgZmRmLCBhcHBlbmQgPSBUUlVFKVxuIyB1c2UgIGRiUXVvdGVJZGVudGlmaWVyKCkgZm9yIHRoZSB0YWJsZSBuYW1lIGlmIGl0IGlzIHRyaWNreVxuIyBvdGhlciBvcHRpb25hbCBhcmd1bWVudHMgYXJlOlxuIyBhcHBlbmQgPSBUUlVFIHByZXNlcnZlcyB3aGF0J3MgaW4gdGhlIHRhYmxlIGlmIGl0IGV4aXN0ZWRcbiMgb3ZlcndyaXRlID0gVFJVRSBvdmVyd3JpdGVzIFRIRSBXSE9MRSBUQUJMRSwgbm90IGp1c3QgZHVwbGljYXRlIGRhdGFcbiMgZmllbGQudHlwZXMgLSBTUUwgdHlwZXMgKHNlZSB0aGUgREJJIGRvYylcbmBgYCJ9 -->
+<pre class="r"><code>              # Copy R data frame to database table,
+              # create one if it doesn't exist,
+              # append or rewrite if it does.
+res &lt;- dbWriteTable(db1conn, &quot;datable&quot;, fdf, append = TRUE)
+# use  dbQuoteIdentifier() for the table name if it is tricky
+# other optional arguments are:
+# append = TRUE preserves what's in the table if it existed
+# overwrite = TRUE overwrites THE WHOLE TABLE, not just duplicate data
+# field.types - SQL types (see the DBI doc)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>The reason why this is the MOST useful way is, that you save your effort of figuring out the correct formats for the data in your R data frame, the wrapper does this work for you. But if you want to do it yourself - step one level down:</p>
 <p>From DBI documentation:</p>
 <p>“…callers are strongly advised to use dbExecute() for data manipulation statements,” - not for SELECT statements where dbGetQuery should be used. So, for table creation and deletion etc. etc. the dbExecute should be used.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBMZXQncyBjcmVhdGUgdGFibGVzIGluIHRoZSBvcGVuIGRhdGFiYXNlc1xucTEgPC0gXCJDUkVBVEUgVEFCTEUgZGF0YWJsZSAoXG4gICAgICAgICAgICBpZCBJTlRFR0VSIFBSSU1BUlkgS0VZIEFVVE9JTkNSRU1FTlQsXG4gICAgICAgICAgICB1c2VyIENIQVIoMjApXG4gICAgICAgICAgKTtcIlxucmVzIDwtIGRiRXhlY3V0ZShkYjFjb25uLCBxMSlcbnJlc1xuYGBgIn0= -->
-<pre class="r"><code># Let's create tables in the open databases
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG4gICAgICAgICAgICAgICAgIyBDcmVhdGluZyBhIG5ldyB0YWJsZVxuXG4jIExldCdzIGNyZWF0ZSB0YWJsZXMgaW4gdGhlIG9wZW4gZGF0YWJhc2VzXG5xMSA8LSBcIkNSRUFURSBUQUJMRSBkYXRhYmxlIChcbiAgICAgICAgICAgIGlkIElOVEVHRVIgUFJJTUFSWSBLRVkgQVVUT0lOQ1JFTUVOVCxcbiAgICAgICAgICAgIHVzZXIgQ0hBUigyMClcbiAgICAgICAgICApO1wiXG5yZXMgPC0gZGJFeGVjdXRlKGRiMWNvbm4sIHExKSAgIyByZXMgaGFzIGEgbnVtYmVyIG9mIGFmZmVjdGVkIHJvd3NcbmBgYCJ9 -->
+<pre class="r"><code>
+                # Creating a new table
+
+# Let's create tables in the open databases
 q1 &lt;- &quot;CREATE TABLE datable (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user CHAR(20)
           );&quot;
-res &lt;- dbExecute(db1conn, q1)
-res</code></pre>
+res &lt;- dbExecute(db1conn, q1)  # res has a number of affected rows</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDBcbiJ9 -->
-<pre><code>[1] 0</code></pre>
-<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>One layer lower for the same is dbSendStatement() but if you use that one you need to dbClearResult() after it yourself; dbSendQuery() (which requires dbClearResult too) is for lower level “SELECT” queries.</p>
+<p>One more layer lower for the same is the dbSendStatement() but if you use that one you need to dbClearResult() after it yourself; dbSendQuery() (which requires dbClearResult too) is for lower level “SELECT” queries.</p>
 <p>From DBI:“The dbSendStatement() method only submits and synchronously executes the SQL data manipulation statement (e.g., UPDATE, DELETE, INSERT INTO, DROP TABLE, …) to the database engine.”</p>
-<p>Or you can build your own query, then fetch the data and clean yourself, but this is just what dbGetQuery does (without going back and forth to the interpreter three times).</p>
+<p>Now let’s read an R data frame from the database, the main vehicle here is:</p>
+<ol start="2" style="list-style-type: decimal">
+<li>dbGetQuery</li>
+</ol>
+<p>Page 19 of DBI document.</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuICAgICAgICAgICAgICAjIEdldCBkYXRhIGZyb20gdGhlIGRhdGFiYXNlIHRhYmxlIGludG9cbiAgICAgICAgICAgICAgIyBhbiBSIGRhdGEgZnJhbWVcbnEyIDwtIFwiU0VMRUNUICogRlJPTSBkYXRhYmxlXCIgIyB0aGUgc2VtaS1jb2xvbiBhdCB0aGUgZW5kIGlzIG9wdGlvbmFsXG5kZiA8LSBkYkdldFF1ZXJ5KGRiMWNvbm4sIHEyKVxuIyBhbmQuLi5cbmRiRGlzY29ubmVjdChkYjFjb25uKVxuYGBgIn0= -->
+<pre class="r"><code>              # Get data from the database table into
+              # an R data frame
+q2 &lt;- &quot;SELECT * FROM datable&quot; # the semi-colon at the end is optional
+df &lt;- dbGetQuery(db1conn, q2)
+# and...
+dbDisconnect(db1conn)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Again, as it was with the dbWriteTable, you don’t need to bother with types and matching of the data frame and what you will get from the database.</p>
+<p>Or, as always, you can build your own query, then fetch the data and clean yourself, but this is just what dbGetQuery does (without going back and forth to the interpreter three times).</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBCdWlsZCBhbmQgc2VuZCBxdWVyeVxubXlRdWVyeSA8LSBkYlNlbmRRdWVyeShkYiwgXCJTRUxFQ1QgTWVhc3VyZW1lbnQuVGltZXN0YW1wLkxhYmVsLCBIdW1pZGl0eSBGUk9NIGZvc3RlclwiKVxuXG4jIEZldGNoIHRoZSByZXN1bHRcbm15X2RhdGEgPC0gZGJGZXRjaChteVF1ZXJ5LCBuID0gLTEpICMgLTEgbWVhbnMgJ2FsbCdcblxuIyBjbGVhbiB1cCBhZnRlciB5b3Vyc2VsZiBcbmJDbGVhclJlc3VsdChteVF1ZXJ5KVxuXG4jIERvbid0IGZvcmdldCB0byB0dXJuIHRoZSBsaWdodHMgb2ZmIHdoZW4geW91IGFyZSBsZWF2aW5nIVxuZGJEaXNjb25uZWN0KGRiMWNvbm4pXG5gYGAifQ== -->
@@ -231,25 +283,7 @@ dbDisconnect(db1conn)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<!-- rnb-text-end -->
-<!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBBcyBpbiBhIGNvbnNvbGUgbW9kZSBpbml0aWF0aW5nIGNvbm5lY3Rpb24gY3JlYXRlcyBhIGRhdGFiYXNlIGZpbGVcblxuXG4jIERhdGFcbiMgZGF0YShmZGYpXG4jIGRiV3JpdGVUYWJsZShkYiwgXCJmb3N0ZXJcIiwgZmRmKVxuIyBkYkxpc3RUYWJsZXMoZGIpXG5cbiMgcXVlcnlcbiMgZGJHZXRRdWVyeShkYiwgXCJTRUxFQ1QgKiBGUk9NIGZvc3RlcjtcIilcblxuIyB0dXJuIHRoZSBsaWdodCBvZmYgYmVmb3JlIGxlYXZpbmdcbiNkYkRpc2Nvbm5lY3QoZGIpXG5gYGAifQ== -->
-<pre class="r"><code># As in a console mode initiating connection creates a database file
-
-
-# Data
-# data(fdf)
-# dbWriteTable(db, &quot;foster&quot;, fdf)
-# dbListTables(db)
-
-# query
-# dbGetQuery(db, &quot;SELECT * FROM foster;&quot;)
-
-# turn the light off before leaving
-#dbDisconnect(db)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-chunk-end -->
-<!-- rnb-text-begin -->
+<p>This can make sense too if you need a more granular programming.</p>
 <p>Also, see in pandas/python</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
@@ -266,11 +300,11 @@ print(df.head())</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>And ‘out of memory’ workflow: <a href="https://plot.ly/python/big-data-analytics-with-pandas-and-sqlite/" class="uri">https://plot.ly/python/big-data-analytics-with-pandas-and-sqlite/</a></p>
+<p>And the ‘out of memory’ workflow: <a href="https://plot.ly/python/big-data-analytics-with-pandas-and-sqlite/" class="uri">https://plot.ly/python/big-data-analytics-with-pandas-and-sqlite/</a></p>
 <p>The end.</p>
 <!-- rnb-text-end -->
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgd2l0aCBTUUxpdGUiDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpNYWludGFpbmluZyBhIGxvY2FsIFNRTGl0ZSBjYWNoZSBkYXRhYmFzZSBvZiBkYXRhIGZvciBwcm9jZXNzaW5nIGluIFIgYW5kIFB5dGhvbi4NCg0KVGhlIGxvY2FsIGRhdGFiYXNlcyBhcmUgaW4gdGhlICJGOlxzcWxpdGUtZGF0YWJhc2VzXCIgZGlyZWN0b3J5IGFzIGZpbGVzIHdpdGggZXh0ZW5zaW9uICouc3FsaXRlDQoNCkRhdGFiYXNlIGNyZWF0aW9uOiBjaGFuZ2UgZGlyZWN0b3J5IHRvICJGOlxzcWxpdGUtZGF0YWJhc2VzXCIsIA0KDQo+c3FsaXRlMyBuYmFzZS5zcWxpdGUNCg0KLi4uYnV0IEkgd2FudCB0byB0cnkgY3JlYXRpbmcgYSBkYXRhYmFzZSBwcm9ncmFtbWF0aWNhbGx5IGluIHRoaXMgZXBpc29kZS4NCg0KYGBge3J9DQpsaWJyYXJ5KFJTUUxpdGUpICAjd2hlcmUgdGhlIFNRTGl0ZSB3cmFwcGVyIGlzDQpsaWJyYXJ5KERCSSkgICAgICAjdGhlIGdlbmVyYWwgREJJDQoNCiMgc2V0IHVwIHRoZSBuYW1lIG9mIHRoZSBkYXRhYmFzZQ0KZGIxbmFtZSA8LSAiRjovc3FsaXRlX2RhdGFiYXNlcy9kYWJhc2Uuc3FsaXRlIg0KI2RiMm5hbWUgPC0gIkY6L3NxbGl0ZV9kYXRhYmFzZXMvdGhhYmFzZS5zcWxpdGUiDQoNCiMgTm93IHdlIG9wZW4gdHdvIGNvbm5lY3Rpb25zDQpkYjFjb25uIDwtIGRiQ29ubmVjdChSU1FMaXRlOjpTUUxpdGUoKSwgZGIxbmFtZSkNCiNkYjJjb25uIDwtIGRiQ29ubmVjdChSU1FMaXRlOjpTUUxpdGUoKSwgZGIybmFtZSkNCg0KYGBgDQoNCkZyb20gREJJIGRvY3VtZW50YXRpb246DQoNCiIuLi5jYWxsZXJzIGFyZSBzdHJvbmdseSBhZHZpc2VkIHRvIHVzZSBkYkV4ZWN1dGUoKSBmb3IgZGF0YSBtYW5pcHVsYXRpb24gc3RhdGVtZW50cywiIC0gbm90IGZvciBTRUxFQ1Qgc3RhdGVtZW50cyB3aGVyZSBkYkdldFF1ZXJ5IHNob3VsZCBiZSB1c2VkLiBTbywgZm9yIHRhYmxlIGNyZWF0aW9uIGFuZCBkZWxldGlvbiBldGMuIGV0Yy4gdGhlIGRiRXhlY3V0ZSBzaG91bGQgYmUgdXNlZC4NCg0KYGBge3J9DQojIExldCdzIGNyZWF0ZSB0YWJsZXMgaW4gdGhlIG9wZW4gZGF0YWJhc2VzDQpxMSA8LSAiQ1JFQVRFIFRBQkxFIGRhdGFibGUgKA0KICAgICAgICAgICAgaWQgSU5URUdFUiBQUklNQVJZIEtFWSBBVVRPSU5DUkVNRU5ULA0KICAgICAgICAgICAgdXNlciBDSEFSKDIwKQ0KICAgICAgICAgICk7Ig0KcmVzIDwtIGRiRXhlY3V0ZShkYjFjb25uLCBxMSkgICMgcmVzIGhhcyBhIG51bWJlciBvZiBhZmZlY3RlZCByb3dzIGluIGl0DQpgYGANCg0KT25lIGxheWVyIGxvd2VyIGZvciB0aGUgc2FtZSBpcyBkYlNlbmRTdGF0ZW1lbnQoKSBidXQgaWYgeW91IHVzZSB0aGF0IG9uZSB5b3UgbmVlZCB0byAgZGJDbGVhclJlc3VsdCgpIGFmdGVyIGl0IHlvdXJzZWxmOyBkYlNlbmRRdWVyeSgpICh3aGljaCByZXF1aXJlcyBkYkNsZWFyUmVzdWx0IHRvbykgaXMgZm9yIGxvd2VyIGxldmVsICJTRUxFQ1QiIHF1ZXJpZXMuDQoNCkZyb20gREJJOiJUaGUgZGJTZW5kU3RhdGVtZW50KCkgbWV0aG9kIG9ubHkgc3VibWl0cyBhbmQgc3luY2hyb25vdXNseSBleGVjdXRlcyB0aGUgU1FMIGRhdGEgbWFuaXB1bGF0aW9uIHN0YXRlbWVudCAoZS5nLiwgVVBEQVRFLCBERUxFVEUsIElOU0VSVCBJTlRPLCBEUk9QIFRBQkxFLCAuLi4pIHRvIHRoZSBkYXRhYmFzZSBlbmdpbmUuICINCg0KDQpPciB5b3UgY2FuIGJ1aWxkIHlvdXIgb3duIHF1ZXJ5LCB0aGVuIGZldGNoIHRoZSBkYXRhIGFuZCBjbGVhbiB5b3Vyc2VsZiwgYnV0IHRoaXMgaXMganVzdCB3aGF0IGRiR2V0UXVlcnkgZG9lcyAod2l0aG91dCBnb2luZyBiYWNrIGFuZCBmb3J0aCB0byB0aGUgaW50ZXJwcmV0ZXIgdGhyZWUgdGltZXMpLg0KDQpgYGB7cn0NCiMgQnVpbGQgYW5kIHNlbmQgcXVlcnkNCm15UXVlcnkgPC0gZGJTZW5kUXVlcnkoZGIsICJTRUxFQ1QgTWVhc3VyZW1lbnQuVGltZXN0YW1wLkxhYmVsLCBIdW1pZGl0eSBGUk9NIGZvc3RlciIpDQoNCiMgRmV0Y2ggdGhlIHJlc3VsdA0KbXlfZGF0YSA8LSBkYkZldGNoKG15UXVlcnksIG4gPSAtMSkgIyAtMSBtZWFucyAnYWxsJw0KDQojIGNsZWFuIHVwIGFmdGVyIHlvdXJzZWxmIA0KYkNsZWFyUmVzdWx0KG15UXVlcnkpDQoNCiMgRG9uJ3QgZm9yZ2V0IHRvIHR1cm4gdGhlIGxpZ2h0cyBvZmYgd2hlbiB5b3UgYXJlIGxlYXZpbmchDQpkYkRpc2Nvbm5lY3QoZGIxY29ubikNCmBgYA0KDQpgYGB7cn0NCiMgQXMgaW4gYSBjb25zb2xlIG1vZGUgaW5pdGlhdGluZyBjb25uZWN0aW9uIGNyZWF0ZXMgYSBkYXRhYmFzZSBmaWxlDQoNCg0KIyBEYXRhDQojIGRhdGEoZmRmKQ0KIyBkYldyaXRlVGFibGUoZGIsICJmb3N0ZXIiLCBmZGYpDQojIGRiTGlzdFRhYmxlcyhkYikNCg0KIyBxdWVyeQ0KIyBkYkdldFF1ZXJ5KGRiLCAiU0VMRUNUICogRlJPTSBmb3N0ZXI7IikNCg0KIyB0dXJuIHRoZSBsaWdodCBvZmYgYmVmb3JlIGxlYXZpbmcNCiNkYkRpc2Nvbm5lY3QoZGIpDQpgYGANCg0KDQpBbHNvLCBzZWUgaW4gcGFuZGFzL3B5dGhvbg0KDQpgYGB7cHl0aG9ufQ0KaW1wb3J0IHBhbmRhcyBhcyBwZA0KaW1wb3J0IHNxbGl0ZTMNCiANCmNvbm4gPSBzcWxpdGUzLmNvbm5lY3QoJ0Y6L3NxbGl0ZV9kYXRhYmFzZXMvbmJhc2Uuc3FsaXRlJykNCnF1ZXJ5ID0gIlNFTEVDVCAqIEZST00gZm9zdGVyIg0KIA0KZGYgPSBwZC5yZWFkX3NxbF9xdWVyeShxdWVyeSxjb25uKQ0KIA0KcHJpbnQoZGYuaGVhZCgpKQ0KYGBgDQoNCg0KQW5kICdvdXQgb2YgbWVtb3J5JyB3b3JrZmxvdzogaHR0cHM6Ly9wbG90Lmx5L3B5dGhvbi9iaWctZGF0YS1hbmFseXRpY3Mtd2l0aC1wYW5kYXMtYW5kLXNxbGl0ZS8NCg0KVGhlIGVuZC4NCg==</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgd2l0aCBTUUxpdGUiDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpNYWludGFpbmluZyBhIGxvY2FsIFNRTGl0ZSBjYWNoZSBkYXRhYmFzZSBvZiBkYXRhIGZvciBwcm9jZXNzaW5nIGluIFIgYW5kIFB5dGhvbi4NCg0KVGhlIGxvY2FsIGRhdGFiYXNlcyBhcmUgaW4gdGhlICJGOlxzcWxpdGUtZGF0YWJhc2VzXCIgZGlyZWN0b3J5IGFzIGZpbGVzIHdpdGggZXh0ZW5zaW9uICouc3FsaXRlDQoNCkRhdGFiYXNlIGNyZWF0aW9uOiBjaGFuZ2UgZGlyZWN0b3J5IHRvICJGOlxzcWxpdGUtZGF0YWJhc2VzXCIsIA0KDQo+c3FsaXRlMyBuYmFzZS5zcWxpdGUNCg0KLi4uYnV0IEkgd2FudCB0byB0cnkgY3JlYXRpbmcgYSBkYXRhYmFzZSBwcm9ncmFtbWF0aWNhbGx5IGluIHRoaXMgZXBpc29kZS4NCg0KYGBge3J9DQpsaWJyYXJ5KFJTUUxpdGUpICAjd2hlcmUgdGhlIFNRTGl0ZSB3cmFwcGVyIGlzDQpsaWJyYXJ5KERCSSkgICAgICAjdGhlIGdlbmVyYWwgREJJDQoNCiAgICAgICAgICAgICAgIyBPcGVuaW5nIG9yIENyZWF0aW5nIGEgZGF0YWJhc2UgZmlsZQ0KDQojIHNldCB1cCB0aGUgbmFtZSBvZiB0aGUgZGF0YWJhc2UNCmRiMW5hbWUgPC0gIkY6L3NxbGl0ZV9kYXRhYmFzZXMvZGFiYXNlLnNxbGl0ZSINCiNkYjJuYW1lIDwtICJGOi9zcWxpdGVfZGF0YWJhc2VzL3RoYWJhc2Uuc3FsaXRlIg0KDQojIE5vdyB3ZSBvcGVuIHR3byBjb25uZWN0aW9ucw0KZGIxY29ubiA8LSBkYkNvbm5lY3QoUlNRTGl0ZTo6U1FMaXRlKCksIGRiMW5hbWUpDQojZGIyY29ubiA8LSBkYkNvbm5lY3QoUlNRTGl0ZTo6U1FMaXRlKCksIGRiMm5hbWUpDQoNCmBgYA0KDQpMZXQncyBsaXN0IHRoZSBleGlzdGluZyB0YWJsZXMsIHRoZW4gLSBjcmVhdGUgYSBuZXcgb25lIGlmIG5lY2Vzc2FyeQ0KDQpgYGB7cn0NCiAgICAgICAgICAgICAgI0xpc3QgdGFibGVzIChhbmQgdmlld3MpDQoNCmNoYXJ2ZWN0b3IgPC0gZGJMaXN0VGFibGVzKGRiMWNvbm4pDQpjaGFydmVjdG9yDQpgYGANCg0KTGV0J3Mgbm90IGJvdGhlciB3aXRoIGZpbmRpbmcgb3V0IHdoZXRoZXIgJ291ciBuYW1lJyBpcyBpbiB0aGlzIGNoYXIgdmVjdG9yLiBXZSBoYXZlIG91ciBEYXRhIHRoYXQgbmVlZHMgdG8gYmUgc3RvcmVkLiBMdWNraWx5IGVub3VnaCwgYmVzaWRlcyB0aGUgb3JkaW5hcnkgJ2RhdGFiYXNlIHdheScgb2YgZmlyc3QgY3JlYXRpbmcgYSB0YWJsZSAod2l0aCB0aGUgZm9ybWF0cyB0aGF0IG5lZWQgdG8gZmlndXJlZCBvdXQgYmVmb3JlIHlvdSBzdGFydCksIHRoZW4gYWRkaW5nIHJvd3MgdG8gaXQgb25lIGFmdGVyIGFub3RoZXIsIHRoZXJlIGlzIGFuICJSIHdheSIgb2YgdGhyb3dpbmcgYSB3aG9sZSBkYXRhZnJhbWUgaW50byB0aGUgb3BlbmVkIGRhdGFiYXNlIGFuZCBsZXQgdGhlIGZ1bmN0aW9uIGZpZ3VyZSBvdXQgdGhlIGZvcm1hdHMgYW5kIGNyZWF0ZSBhIHRhYmxlIGFjY29yZGluZ2x5Lg0KDQoxLiBkYldyaXRlVGFibGUoKQ0KDQpQYWdlIDQxIG9mIERCSSBkb2N1bWVudC4gQ29waWVzIFIgZGF0YSBmcmFtZXMgdG8gZGF0YWJhc2UgdGFibGVzLg0KDQpgYGB7cn0NCiAgICAgICAgICAgICAgIyBDb3B5IFIgZGF0YSBmcmFtZSB0byBkYXRhYmFzZSB0YWJsZSwNCiAgICAgICAgICAgICAgIyBjcmVhdGUgb25lIGlmIGl0IGRvZXNuJ3QgZXhpc3QsDQogICAgICAgICAgICAgICMgYXBwZW5kIG9yIHJld3JpdGUgaWYgaXQgZG9lcy4NCg0KcmVzIDwtIGRiV3JpdGVUYWJsZShkYjFjb25uLCAiZGF0YWJsZSIsIGZkZiwgYXBwZW5kID0gVFJVRSkNCg0KIyB1c2UgIGRiUXVvdGVJZGVudGlmaWVyKCkgZm9yIHRoZSB0YWJsZSBuYW1lIGlmIGl0IGlzIHRyaWNreQ0KDQojIG90aGVyIG9wdGlvbmFsIGFyZ3VtZW50cyBhcmU6DQojIGFwcGVuZCA9IFRSVUUgcHJlc2VydmVzIHdoYXQncyBpbiB0aGUgdGFibGUgaWYgaXQgZXhpc3RlZA0KIyBvdmVyd3JpdGUgPSBUUlVFIG92ZXJ3cml0ZXMgVEhFIFdIT0xFIFRBQkxFLCBub3QganVzdCBkdXBsaWNhdGUgZGF0YQ0KIyBmaWVsZC50eXBlcyAtIFNRTCB0eXBlcyAoc2VlIHRoZSBEQkkgZG9jKQ0KDQojd29ya3MgcGVyZmVjdGx5IGZpbmUsIGJvdGggd2l0aCAnb3ZlcndyaXRlJyBhbmQgd2l0aCAnYXBwZW5kJy4NCmBgYA0KDQpUaGUgcmVhc29uIHdoeSB0aGlzIGlzIHRoZSBNT1NUIHVzZWZ1bCB3YXkgaXMsIHRoYXQgeW91IHNhdmUgeW91ciBlZmZvcnQgb2YgZmlndXJpbmcgb3V0IHRoZSBjb3JyZWN0IGZvcm1hdHMgZm9yIHRoZSBkYXRhIGluIHlvdXIgUiBkYXRhIGZyYW1lLCB0aGUgd3JhcHBlciBkb2VzIHRoaXMgd29yayBmb3IgeW91LiBCdXQgaWYgeW91IHdhbnQgdG8gZG8gaXQgeW91cnNlbGYgLSBzdGVwIG9uZSBsZXZlbCBkb3duOg0KDQpGcm9tIERCSSBkb2N1bWVudGF0aW9uOg0KDQoiLi4uY2FsbGVycyBhcmUgc3Ryb25nbHkgYWR2aXNlZCB0byB1c2UgZGJFeGVjdXRlKCkgZm9yIGRhdGEgbWFuaXB1bGF0aW9uIHN0YXRlbWVudHMsIiAtIG5vdCBmb3IgU0VMRUNUIHN0YXRlbWVudHMgd2hlcmUgZGJHZXRRdWVyeSBzaG91bGQgYmUgdXNlZC4gU28sIGZvciB0YWJsZSBjcmVhdGlvbiBhbmQgZGVsZXRpb24gZXRjLiBldGMuIHRoZSBkYkV4ZWN1dGUgc2hvdWxkIGJlIHVzZWQuDQoNCmBgYHtyfQ0KDQogICAgICAgICAgICAgICAgIyBDcmVhdGluZyBhIG5ldyB0YWJsZQ0KDQojIExldCdzIGNyZWF0ZSB0YWJsZXMgaW4gdGhlIG9wZW4gZGF0YWJhc2VzDQpxMSA8LSAiQ1JFQVRFIFRBQkxFIGRhdGFibGUgKA0KICAgICAgICAgICAgaWQgSU5URUdFUiBQUklNQVJZIEtFWSBBVVRPSU5DUkVNRU5ULA0KICAgICAgICAgICAgdXNlciBDSEFSKDIwKQ0KICAgICAgICAgICk7Ig0KcmVzIDwtIGRiRXhlY3V0ZShkYjFjb25uLCBxMSkgICMgcmVzIGhhcyBhIG51bWJlciBvZiBhZmZlY3RlZCByb3dzDQpgYGANCg0KT25lIG1vcmUgbGF5ZXIgbG93ZXIgZm9yIHRoZSBzYW1lIGlzIHRoZSBkYlNlbmRTdGF0ZW1lbnQoKSBidXQgaWYgeW91IHVzZSB0aGF0IG9uZSB5b3UgbmVlZCB0byAgZGJDbGVhclJlc3VsdCgpIGFmdGVyIGl0IHlvdXJzZWxmOyBkYlNlbmRRdWVyeSgpICh3aGljaCByZXF1aXJlcyBkYkNsZWFyUmVzdWx0IHRvbykgaXMgZm9yIGxvd2VyIGxldmVsICJTRUxFQ1QiIHF1ZXJpZXMuDQoNCkZyb20gREJJOiJUaGUgZGJTZW5kU3RhdGVtZW50KCkgbWV0aG9kIG9ubHkgc3VibWl0cyBhbmQgc3luY2hyb25vdXNseSBleGVjdXRlcyB0aGUgU1FMIGRhdGEgbWFuaXB1bGF0aW9uIHN0YXRlbWVudCAoZS5nLiwgVVBEQVRFLCBERUxFVEUsIElOU0VSVCBJTlRPLCBEUk9QIFRBQkxFLCAuLi4pIHRvIHRoZSBkYXRhYmFzZSBlbmdpbmUuICINCg0KTm93IGxldCdzIHJlYWQgYW4gUiBkYXRhIGZyYW1lIGZyb20gdGhlIGRhdGFiYXNlLCB0aGUgbWFpbiB2ZWhpY2xlIGhlcmUgaXM6DQoNCjIuIGRiR2V0UXVlcnkNCg0KUGFnZSAxOSBvZiBEQkkgZG9jdW1lbnQuDQoNCmBgYHtyfQ0KICAgICAgICAgICAgICAjIEdldCBkYXRhIGZyb20gdGhlIGRhdGFiYXNlIHRhYmxlIGludG8NCiAgICAgICAgICAgICAgIyBhbiBSIGRhdGEgZnJhbWUNCg0KcTIgPC0gIlNFTEVDVCAqIEZST00gZGF0YWJsZSIgIyB0aGUgc2VtaS1jb2xvbiBhdCB0aGUgZW5kIGlzIG9wdGlvbmFsDQoNCmRmIDwtIGRiR2V0UXVlcnkoZGIxY29ubiwgcTIpDQoNCiMgYW5kLi4uDQpkYkRpc2Nvbm5lY3QoZGIxY29ubikNCmBgYA0KDQpBZ2FpbiwgYXMgaXQgd2FzIHdpdGggdGhlIGRiV3JpdGVUYWJsZSwgeW91IGRvbid0IG5lZWQgdG8gYm90aGVyIHdpdGggdHlwZXMgYW5kIG1hdGNoaW5nIG9mIHRoZSBkYXRhIGZyYW1lIGFuZCB3aGF0IHlvdSB3aWxsIGdldCBmcm9tIHRoZSBkYXRhYmFzZS4NCg0KT3IsIGFzIGFsd2F5cywgeW91IGNhbiBidWlsZCB5b3VyIG93biBxdWVyeSwgdGhlbiBmZXRjaCB0aGUgZGF0YSBhbmQgY2xlYW4geW91cnNlbGYsIGJ1dCB0aGlzIGlzIGp1c3Qgd2hhdCBkYkdldFF1ZXJ5IGRvZXMgKHdpdGhvdXQgZ29pbmcgYmFjayBhbmQgZm9ydGggdG8gdGhlIGludGVycHJldGVyIHRocmVlIHRpbWVzKS4NCg0KYGBge3J9DQojIEJ1aWxkIGFuZCBzZW5kIHF1ZXJ5DQpteVF1ZXJ5IDwtIGRiU2VuZFF1ZXJ5KGRiLCAiU0VMRUNUIE1lYXN1cmVtZW50LlRpbWVzdGFtcC5MYWJlbCwgSHVtaWRpdHkgRlJPTSBmb3N0ZXIiKQ0KDQojIEZldGNoIHRoZSByZXN1bHQNCm15X2RhdGEgPC0gZGJGZXRjaChteVF1ZXJ5LCBuID0gLTEpICMgLTEgbWVhbnMgJ2FsbCcNCg0KIyBjbGVhbiB1cCBhZnRlciB5b3Vyc2VsZiANCmJDbGVhclJlc3VsdChteVF1ZXJ5KQ0KDQojIERvbid0IGZvcmdldCB0byB0dXJuIHRoZSBsaWdodHMgb2ZmIHdoZW4geW91IGFyZSBsZWF2aW5nIQ0KZGJEaXNjb25uZWN0KGRiMWNvbm4pDQpgYGANCg0KVGhpcyBjYW4gbWFrZSBzZW5zZSB0b28gaWYgeW91IG5lZWQgYSBtb3JlIGdyYW51bGFyIHByb2dyYW1taW5nLg0KDQoNCkFsc28sIHNlZSBpbiBwYW5kYXMvcHl0aG9uDQoNCmBgYHtweXRob259DQppbXBvcnQgcGFuZGFzIGFzIHBkDQppbXBvcnQgc3FsaXRlMw0KIA0KY29ubiA9IHNxbGl0ZTMuY29ubmVjdCgnRjovc3FsaXRlX2RhdGFiYXNlcy9uYmFzZS5zcWxpdGUnKQ0KcXVlcnkgPSAiU0VMRUNUICogRlJPTSBmb3N0ZXIiDQogDQpkZiA9IHBkLnJlYWRfc3FsX3F1ZXJ5KHF1ZXJ5LGNvbm4pDQogDQpwcmludChkZi5oZWFkKCkpDQpgYGANCg0KDQpBbmQgdGhlICdvdXQgb2YgbWVtb3J5JyB3b3JrZmxvdzogaHR0cHM6Ly9wbG90Lmx5L3B5dGhvbi9iaWctZGF0YS1hbmFseXRpY3Mtd2l0aC1wYW5kYXMtYW5kLXNxbGl0ZS8NCg0KVGhlIGVuZC4NCg==</div>
 
 
 
