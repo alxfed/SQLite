@@ -83,6 +83,16 @@ One more layer lower for the same is the dbSendStatement() but if you use that o
 
 From DBI:"The dbSendStatement() method only submits and synchronously executes the SQL data manipulation statement (e.g., UPDATE, DELETE, INSERT INTO, DROP TABLE, ...) to the database engine. "
 
+By the way, once you've opened your database, you can perform any SQL queries you want in R notebook SQL chunk, just add the name of connection in the header of the chunk.
+
+```{sql connection=db1conn}
+
+SELECT *
+FROM datable
+
+```
+
+
 Now let's read an R data frame from the database, the main vehicle here is:
 
 2. dbGetQuery
