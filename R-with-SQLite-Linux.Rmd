@@ -1,0 +1,152 @@
+---
+title: "R with SQLite"
+output: html_notebook
+---
+
+Maintaining a local SQLite cache database of data for processing in R and Python.
+
+The local databases are in the "/media/alxfed/toca/sqlite-databases/" directory as files with extension *.sqlite
+
+Database creation: change directory to "/media/alxfed/toca/sqlite_databases/", 
+
+>sqlite3 nbase.sqlite
+
+...but I want to try creating a database programmatically in this episode.
+
+```{r}
+library(RSQLite)  #where the SQLite wrapper is
+library(DBI)      #the general DBI
+
+              # Opening or Creating a database file
+
+# set up the name of the database
+db1name <- "/media/alxfed/toca/sqlite_databases/dabase.sqlite"
+#db2name <- "F:/sqlite_databases/thabase.sqlite"
+
+# Now we open two connections
+db1conn <- dbConnect(RSQLite::SQLite(), db1name)
+#db2conn <- dbConnect(RSQLite::SQLite(), db2name)
+
+```
+
+Let's list the existing tables, then - create a new one if necessary
+
+```{r}
+              #List tables (and views)
+
+charvector <- dbListTables(db1conn)
+charvector
+```
+
+Let's not bother with finding out whether 'our name' is in this char vector. We have our Data that needs to be stored. Luckily enough, besides the ordinary 'database way' of first creating a table (with the formats that need to figured out before you start), then adding rows to it one after another, there is an "R way" of throwing a whole dataframe into the opened database and let the function figure out the formats and create a table accordingly.
+
+1. dbWriteTable()
+
+Page 41 of DBI document. Copies R data frames to database tables.
+
+```{r}
+              # Copy R data frame to database table,
+              # create one if it doesn't exist,
+              # append or rewrite if it does.
+
+res <- dbWriteTable(db1conn, "datable", fdf, append = TRUE)
+
+# use  dbQuoteIdentifier() for the table name if it is tricky
+
+# other optional arguments are:
+# append = TRUE preserves what's in the table if it existed OR
+# overwrite = TRUE overwrites THE WHOLE TABLE, not just duplicate data
+# field.types - SQL types (see the DBI doc)
+
+#works perfectly fine, both with 'overwrite' and with 'append'.
+```
+
+The reason why this is the MOST useful way is, that you save your effort of figuring out the correct formats for the data in your R data frame, the wrapper does this work for you. But if you want to do it yourself - step one level down:
+
+From DBI documentation:
+
+"...callers are strongly advised to use dbExecute() for data manipulation statements," - not for SELECT statements where dbGetQuery should be used. So, for table creation and deletion etc. etc. the dbExecute should be used.
+
+```{r}
+
+                # Creating a new table
+
+# Let's create tables in the open databases
+q1 <- "CREATE TABLE datable (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user CHAR(20)
+          );"
+res <- dbExecute(db1conn, q1)  # res has a number of affected rows
+```
+
+One more layer lower for the same is the dbSendStatement() but if you use that one you need to  dbClearResult() after it yourself; dbSendQuery() (which requires dbClearResult too) is for lower level "SELECT" queries.
+
+From DBI:"The dbSendStatement() method only submits and synchronously executes the SQL data manipulation statement (e.g., UPDATE, DELETE, INSERT INTO, DROP TABLE, ...) to the database engine. "
+
+By the way, once you've opened your database, you can perform any SQL queries you want in an R notebook SQL chunk, just add the name of connection in the header of the chunk.
+
+```{sql connection=db1conn}
+
+SELECT *
+FROM datable
+
+```
+
+
+Now let's read an R data frame from the database, the main vehicle here is:
+
+2. dbGetQuery
+
+Page 19 of DBI document.
+
+```{r}
+              # Get data from the database table into
+              # an R data frame
+
+q2 <- "SELECT * FROM datable" # the semi-colon at the end is optional
+
+df <- dbGetQuery(db1conn, q2)
+
+# and...
+dbDisconnect(db1conn)
+```
+
+Again, as it was with the dbWriteTable, you don't need to bother with types and matching of the data frame and what you will get from the database.
+
+Or, as always, you can build your own query, then fetch the data and clean yourself, but this is just what dbGetQuery does (without going back and forth to the interpreter three times).
+
+```{r}
+# Build and send query
+myQuery <- dbSendQuery(db, "SELECT Measurement.Timestamp.Label, Humidity FROM foster")
+
+# Fetch the result
+my_data <- dbFetch(myQuery, n = -1) # -1 means 'all'
+
+# clean up after yourself 
+bClearResult(myQuery)
+
+# Don't forget to turn the lights off when you are leaving!
+dbDisconnect(db1conn)
+```
+
+This can make sense too if you need a more granular programming.
+
+
+Also, see in pandas/python
+
+```{python}
+import pandas as pd
+import sqlite3
+ 
+conn = sqlite3.connect('/media/alxfed/toca/sqlite_databases/nbase.sqlite')
+query = "SELECT * FROM foster"
+ 
+df = pd.read_sql_query(query,conn)
+ 
+print(df.head())
+```
+
+
+And the 'out of memory' workflow: https://plot.ly/python/big-data-analytics-with-pandas-and-sqlite/
+
+The end.
